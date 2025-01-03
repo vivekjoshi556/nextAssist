@@ -9,6 +9,7 @@ extracted_data = os.getenv("ZIP_EXTRACTION_FOLDER")
 staging_data = os.getenv("CHUNK_CSV_OUTPUT")
 
 chunk_count = 0
+files_processed = 0
 
 if not os.path.exists(output_dir):
     os.mkdir(output_dir)
@@ -26,6 +27,7 @@ def getOutputPath(path):
 
 def traverseFolders(curr_path, df, version, processFile, chunkMarkdown, indent = 0):
     global chunk_count
+    global files_processed
     for category in os.listdir(curr_path):
         path = os.path.join(curr_path, category)
         # print("\t" * indent + path)
@@ -37,6 +39,7 @@ def traverseFolders(curr_path, df, version, processFile, chunkMarkdown, indent =
                 os.mkdir(output_path)
             df = traverseFolders(path, df, version, processFile, chunkMarkdown, indent + 1)
         else:
+            files_processed += 1
             try:
                 title, content, metadata = processFile(path)
                 
@@ -52,6 +55,8 @@ def traverseFolders(curr_path, df, version, processFile, chunkMarkdown, indent =
 
                     chunks, chunk_info = chunkMarkdown(content)
                     num_chunks = len(chunks)
+                    chunk_count += num_chunks
+
                     df_dict = {
                         'path': [path[len(extracted_data) + len(version) + 2:]] * num_chunks, 
                         'title': [title] * num_chunks,
@@ -65,7 +70,6 @@ def traverseFolders(curr_path, df, version, processFile, chunkMarkdown, indent =
                     for key in chunk_info.keys():
                         df_dict[key] = chunk_info[key]
 
-                    chunk_count += num_chunks
                     chunks_df = pd.DataFrame(df_dict)
 
                     df = pd.concat([df, chunks_df], ignore_index=True)
@@ -77,9 +81,12 @@ def traverseFolders(curr_path, df, version, processFile, chunkMarkdown, indent =
 
 
 def processAndChunk(processFile, chunkMarkdown):
+    global chunk_count
+    global files_processed
     print("-" * 50)
     for version in os.listdir(extracted_data):
         chunk_count = 0
+        files_processed = 0
         if not os.path.exists(os.path.join(output_dir, version)):
             os.mkdir(os.path.join(output_dir, version))
 
@@ -95,5 +102,5 @@ def processAndChunk(processFile, chunkMarkdown):
         df['length'] = df['content'].apply(lambda x: len(x.split()))
         print(f"Min Content Length: {min(df['length'])}, Max Content Length: {max(df['length'])}")
         print(f"Exceeding Chunk Size: {df[df['length'] > 385].shape[0]}/{df.shape[0]}")
-        print(f"Files processed: {df.shape}, Chunk Count: {chunk_count}")
+        print(f"Files processed: {files_processed}, Chunk Count: {chunk_count}")
         print("-" * 50)
