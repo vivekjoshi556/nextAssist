@@ -3,7 +3,7 @@ name = "nextassist"
 package-mode = false
 
 [tool.poetry.dependencies]
-python = "3.11.11"
+python = ">=3.10,<3.12"
 streamlit = "^1.41.1"
 python-dotenv = "^1.0.1"
 snowflake-core = "^1.0.2"

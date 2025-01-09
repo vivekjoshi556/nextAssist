@@ -1,6 +1,8 @@
 .env
 
 .venv
+.vscode
+.devcontainer
 
 __pycache__
 
