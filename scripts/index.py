@@ -2,17 +2,16 @@ from dotenv import load_dotenv
 load_dotenv(".env")
 
 from snowSetup import dbSetup
+from extractDocs import extract
 from getDocs import downloadRepo
 from processDocs import processAndChunk
 from nextUtil import processFile, chunkMarkdown
-from extractDocs import extract, filePostProcessing
 
 # Download all the Repositories.
 downloadRepo()
 
-# filePostProcessing here can be replaced with any custom post processing function.
-# This involves post-processing on the directory structure or other file-related aspects, but not the content itself.
-extract(filePostProcessing)
+# This extracts the zip files to the folder mentioned in .env file.
+extract()
 
 # This will process & chunk the files extracted and save them to be directly imported into snowflake.
 processAndChunk(processFile, chunkMarkdown)
