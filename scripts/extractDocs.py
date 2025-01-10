@@ -1,5 +1,4 @@
 import os
-import re
 import shutil
 import zipfile
 
@@ -29,6 +28,9 @@ def extractDocsFromMainFolder(zip_path, output_dir, zip_filename):
 
 
 def extract():
+    """
+    This extracts the zip files to the folder mentioned in .env file.
+    """
     docs_folder = os.getenv("ZIP_DOWNLOAD_FOLDER")
     output_root = os.getenv("ZIP_EXTRACTION_FOLDER")
     os.makedirs(output_root, exist_ok=True)

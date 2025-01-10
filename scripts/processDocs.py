@@ -81,6 +81,9 @@ def traverseFolders(curr_path, df, version, processFile, chunkMarkdown, indent =
 
 
 def processAndChunk(processFile, chunkMarkdown):
+    """
+    This will process & chunk the files extracted and save them to be directly imported into snowflake.
+    """
     global chunk_count
     global files_processed
     print("-" * 50)

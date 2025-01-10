@@ -1,6 +1,7 @@
 import os
 
-create_table_query = f"""CREATE TABLE IF NOT EXISTS {os.getenv('SNOWFLAKE_TABLE_NAME')} (
+# Queries for table containing Docs.
+create_docs_table_query = f"""CREATE TABLE IF NOT EXISTS {os.getenv('SNOWFLAKE_DOC_TABLE_NAME')} (
     RELATIVE_PATH STRING,
     FILE_CONTENT STRING,
     VERSION VARCHAR(15),
@@ -10,7 +11,7 @@ create_table_query = f"""CREATE TABLE IF NOT EXISTS {os.getenv('SNOWFLAKE_TABLE_
 );
 """
 
-create_search_query = f"""CREATE CORTEX SEARCH SERVICE IF NOT EXISTS {os.getenv('CORTEX_SEARCH_SERVICE')}
+create_docs_search_query = f"""CREATE CORTEX SEARCH SERVICE IF NOT EXISTS {os.getenv('CORTEX_DOC_SEARCH_SERVICE')}
 ON FILE_CONTENT
 ATTRIBUTES RELATIVE_PATH, VERSION, TITLE, DESCRIPTION 
 TARGET_LAG = '60 seconds'
@@ -18,6 +19,6 @@ WAREHOUSE = COMPUTE_WH
 AS (
 	SELECT
 		RELATIVE_PATH,FILE_CONTENT,VERSION,TITLE,DESCRIPTION
-	FROM "{os.getenv('SNOWFLAKE_DB')}".{os.getenv('SNOWFLAKE_SCHEMA')}.{os.getenv('SNOWFLAKE_TABLE_NAME')}
+	FROM "{os.getenv('SNOWFLAKE_DB')}".{os.getenv('SNOWFLAKE_SCHEMA')}.{os.getenv('SNOWFLAKE_DOC_TABLE_NAME')}
 )
 """

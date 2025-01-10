@@ -4,6 +4,8 @@
 .vscode
 .devcontainer
 
+test.ipynb
+
 __pycache__
 
 zipFiles

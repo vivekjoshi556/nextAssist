@@ -3,6 +3,9 @@ import requests
 
 
 def downloadRepo():
+    """
+    Download all the Repositories.
+    """
     repo_name = os.getenv("REPO_NAME")
     major_version = int(os.getenv("MAJOR_VERSION"))
     minor_version = int(os.getenv("MINOR_VERSION"))
