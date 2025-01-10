@@ -22,3 +22,25 @@ AS (
 	FROM "{os.getenv('SNOWFLAKE_DB')}".{os.getenv('SNOWFLAKE_SCHEMA')}.{os.getenv('SNOWFLAKE_DOC_TABLE_NAME')}
 )
 """
+
+# Queries for table containing Discussion & Issues Data.
+create_dis_issue_table_query = f"""CREATE TABLE IF NOT EXISTS {os.getenv('SNOWFLAKE_POSTS_TABLE_NAME')} (
+    TITLE VARCHAR(256),
+    URL VARCHAR(2048),
+    CONTENT STRING,
+    TYPE VARCHAR(20),
+    UPDATED_AT TIMESTAMP
+);
+"""
+
+create_dis_issue_search_query = f"""CREATE CORTEX SEARCH SERVICE IF NOT EXISTS {os.getenv('CORTEX_POSTS_SEARCH_SERVICE')}
+ON CONTENT
+ATTRIBUTES TITLE, URL, TYPE 
+TARGET_LAG = '5 minute'
+WAREHOUSE = COMPUTE_WH
+AS (
+	SELECT
+		CONTENT, TITLE, URL, TYPE
+	FROM "{os.getenv('SNOWFLAKE_DB')}".{os.getenv('SNOWFLAKE_SCHEMA')}.{os.getenv('SNOWFLAKE_POSTS_TABLE_NAME')}
+)
+"""
