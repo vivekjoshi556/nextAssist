@@ -2,7 +2,7 @@ import os
 import requests
 import pandas as pd
 import snowflake.connector
-from .queries import (
+from queries import (
     create_docs_table_query, create_docs_search_query, 
     create_dis_issue_table_query, create_dis_issue_search_query
 )
@@ -174,6 +174,7 @@ class SnowSetup():
         values = []
         command = f"INSERT INTO {os.getenv('SNOWFLAKE_POSTS_TABLE_NAME')} (TITLE, URL, CONTENT, TYPE, UPDATED_AT) VALUES (%s, %s, %s, %s, %s)"
 
+        insertion_group_size = 100
         try:
             for idx, row in enumerate(posts):
                 if len(row.keys()) == 0:
@@ -181,8 +182,8 @@ class SnowSetup():
 
                 values.append((str(row['title']), str(row['url']), str(row['body']), type, str(row['updatedAt'])))
 
-                if idx > 0 and idx % 500 == 0:
-                    print(f"Running Query for idx: {idx - 500}-{idx}")
+                if idx > 0 and idx % insertion_group_size == 0:
+                    print(f"Running Query for idx: {idx - insertion_group_size}-{idx}")
                     self._cursor.executemany(command, values)
                     values = []
 

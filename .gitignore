@@ -4,7 +4,10 @@
 .vscode
 .devcontainer
 
+default.sqlite
+
 test.ipynb
+temp
 
 __pycache__
 
