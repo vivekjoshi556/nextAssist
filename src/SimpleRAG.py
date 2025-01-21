@@ -5,6 +5,7 @@ from llama_index.core import Settings
 from trulens.core import Select, Feedback
 from trulens.apps.custom import instrument
 from trulens.providers.openai.provider import OpenAI
+from trulens.providers.cortex.provider import Cortex
 from src.prompts import query_prompt, summary_prompt
 from snowflake.snowpark.context import get_active_session
 from src.CortexSearchRetriever import CortexSearchRetriever
@@ -68,7 +69,7 @@ class SimpleRAG:
     @instrument
     def generate_completion(self, query: str, context: list) -> str:
         prompt = self.create_prompt(query, context)
-        response = self.llm.complete(prompt).text.replace("'", "")
+        response = self.llm.stream_complete(prompt)
         return response
 
 
@@ -88,17 +89,20 @@ class SimpleRAG:
 
     @property
     def version(self):
-        return "SimpleRAG"
+        return "v1"
 
 
     def eval_metrics(self):
-        provider = OpenAI()
+        # provider = OpenAI()
+        provider = Cortex(
+            get_active_session(), 
+            model_engine=os.getenv("SNOWFLAKE_EVAL_LLM")
+        )
 
         f_groundedness = (
-            Feedback(provider.groundedness_measure_with_cot_reasons_consider_answerability, name="Groundedness")
+            Feedback(provider.groundedness_measure_with_cot_reasons, name="Groundedness")
             .on(Select.RecordCalls.retrieve_context.rets[:].collect())
             .on_output()
-            .on_input()
         )
 
         f_context_relevance = (

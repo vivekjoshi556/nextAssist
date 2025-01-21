@@ -9,16 +9,6 @@ from src.SnowflakeEmbedding import SnowflakeEmbedding
 
 load_dotenv(".env")
 
-NUM_CHUNKS = 3
-SLIDE_WINDOW = 7
-
-CORTEX_SEARCH_DATABASE = os.getenv("SNOWFLAKE_DB")
-CORTEX_SEARCH_SCHEMA = os.getenv("SNOWFLAKE_SCHEMA")
-CORTEX_DOC_SEARCH_SERVICE = os.getenv("CORTEX_DOC_SEARCH_SERVICE")
-
-POSTS_COLUMNS = ["title", "url", "type"]
-DOCS_COLUMNS = ["title", "relative_path", "version", "file_content"]
-
 lens_session = sessionSetup()
 Settings.llm = SnowflakeLLM()
 Settings.embed_model = SnowflakeEmbedding()
@@ -52,15 +42,18 @@ def main(rag):
             response, relative_paths = response["result"], response["references"]
 
             answer = ""
-            references = "\n### References: \n" + "\n".join([f"- [{key}]({relative_paths[key]})" for key in relative_paths.keys()])
+            references = "" if len(relative_paths.keys()) == 0 else "\n### References: \n" + "\n".join([f"- [{key}]({relative_paths[key]})" for key in relative_paths.keys()])
             for ans in response:
-                answer += ans.replace("'", "")
+                answer = ans.text.replace("'", "")
                 message_placeholder.markdown(answer)
         
             message_placeholder.markdown(answer + references)
-        st.session_state.messages.append({"role": "assistant", "content": answer})
+        st.session_state.messages.append({"role": "assistant", "content": answer + references})
 
 
 if __name__ == "__main__":
-    rag = SimpleRAG()
+    from src.RAGQueryEngine import RAGQueryEngine
+
+    rag = RAGQueryEngine()
+    # rag = SimpleRAG()
     main(rag)

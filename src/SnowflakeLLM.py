@@ -24,13 +24,13 @@ class SnowflakeLLM(CustomLLM):
         return LLMMetadata(
             context_window=self.context_window,
             num_output=self.num_output,
-            model_name=self.model_name,
+            model_name=os.getenv('CORTEX_LLM_MODEL'),
         )
 
 
     @llm_completion_callback()
     def complete(self, prompt: str, **kwargs: Any) -> CompletionResponse:
-        return CompletionResponse(text=Complete(self.model_name, prompt, options=self.config))
+        return CompletionResponse(text=Complete(os.getenv('CORTEX_LLM_MODEL'), prompt, options=self.config))
 
 
     @llm_completion_callback()
@@ -38,7 +38,7 @@ class SnowflakeLLM(CustomLLM):
         self, prompt: str, **kwargs: Any
     ) -> CompletionResponseGen:
         response = ""
-        response_stream = Complete(self.model_name, prompt, stream = True, options=self.config)
+        response_stream = Complete(os.getenv('CORTEX_LLM_MODEL'), prompt, stream = True, options=self.config)
         for token in response_stream:
             response += token
             yield CompletionResponse(text=response, delta=token)

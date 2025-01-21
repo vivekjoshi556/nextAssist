@@ -20,8 +20,9 @@ class CortexSearchRetriever:
         )
 
 
-    def retrieve(self, query: str) -> List[str]:
+    def retrieve(self, query: str, filter_obj = {}) -> List[str]:
         response = self._service.search(
+            filter=filter_obj,
             query=query,
             columns=self._columns,
             limit=self._top_k,

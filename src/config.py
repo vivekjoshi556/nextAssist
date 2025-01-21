@@ -1,6 +1,6 @@
 import os
 import streamlit as st
-from snowflake.core import Root
+from functools import lru_cache
 from trulens.core import TruSession
 from snowflake.snowpark import Session
 from trulens.dashboard import run_dashboard
@@ -13,8 +13,7 @@ def sessionSetup():
         layout="wide",
         initial_sidebar_state="collapsed",
     )
-    st.title(f":speech_balloon: NextAssist")
-    st.session_state.model_name = 'mistral-large2'
+    st.title(f":speech_balloon: {os.getenv('APP_NAME')}")
     st.session_state.debug = os.getenv("APP_ENV") != 'production'
 
     connection_parameters = {
@@ -25,14 +24,14 @@ def sessionSetup():
         "schema": os.getenv("SNOWFLAKE_SCHEMA"),
     }
 
-    tru_snowflake_connector = SnowflakeConnector(
-        warehouse = os.getenv("SNOWFLAKE_WAREHOUSE"),
-        role = os.getenv("SNOWFLAKE_ROLE"),
-        **connection_parameters
-    )
-    lens_session = TruSession(connector=tru_snowflake_connector)
+    # tru_snowflake_connector = SnowflakeConnector(
+    #     warehouse = os.getenv("SNOWFLAKE_WAREHOUSE"),
+    #     role = os.getenv("SNOWFLAKE_ROLE"),
+    #     **connection_parameters
+    # )
+    # lens_session = TruSession(connector=tru_snowflake_connector)
 
-    run_dashboard(session, port=os.getenv("TRULENS_PORT"))
+    # run_dashboard(session, port=os.getenv("TRULENS_PORT"))
 
     try:
         session = get_active_session()
@@ -40,19 +39,32 @@ def sessionSetup():
         print("No Active Session Found. Creating Session.")
         session = Session.builder.configs(connection_parameters).create()
 
-    categories = session.table(
-        os.getenv("SNOWFLAKE_DOC_TABLE_NAME")
-    ).select('version').distinct().sort('version', ascending=False).collect()
+    categories = get_doc_versions()
+    print(categories)
 
     cat_list = []
     for cat in categories:
-        cat_list.append(cat.VERSION)
+        cat_list.append(cat)
 
     st.sidebar.selectbox('Next Version', cat_list, key = "version")
     st.sidebar.button("Start Over", key="clear_conversation", on_click=init_messages)
     init_messages()
 
-    return lens_session
+    # return lens_session
+
+
+@lru_cache(maxsize=1)
+def get_doc_versions():
+    session = get_active_session()
+    return [
+        row['VERSION'] for row in (
+            session.table(os.getenv("SNOWFLAKE_DOC_TABLE_NAME"))
+            .select('version')
+            .distinct()
+            .sort('version', ascending=False)
+            .collect()
+        )
+    ]
 
 
 def init_messages():
